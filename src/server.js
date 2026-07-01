@@ -75,6 +75,18 @@ app.post("/agendamentos", async (req, res)=>{
 
 })
 
+app.get(("/agendamento/busca"), async (req, res)=>{
+
+    try{
+        const nome = req.query.nome;
+
+        const agendamentos = await Agendamento.find({nomePet: {$regex: nome, $options: "i"}}) //regex aceita minuscula e msiscula, e options aceita pedaços do nome
+        res.status(200).json({message: "Busca efetuado com sucesso", agendamentos})
+    }catch(error){
+        res.status(400).json({message: "erro", error: error.message})
+    }
+})
+
 app.get("/agendamentos", async (req, res)=>{
 
     try{
@@ -92,17 +104,18 @@ app.patch("/agendamentos/:id", async (req, res)=>{
 
     try{
         const {id} = req.params;
+        const {status} = req.body;
 
-        const agendamentoAtualizado = await Agendamento.findByIdAndUpdate(id, req.body, {
-            new: true,
+        const agendamentoAtualizado = await Agendamento.findByIdAndUpdate(id, {status: status}, {
             runValidators: true,
+            new: true,
         });
 
         if(!agendamentoAtualizado){
             return res.status(404).json({status: "Agendamento não encontrado"});
         }
 
-        return res.status(200).json({status: "Concluído", agendamento_atualizado: agendamentoAtualizado});
+        return res.status(200).json({message: "Atualização concluída", agendamento_atualizado: agendamentoAtualizado});
 
     }catch(error){
         return res.status(500).json({status: "Não foi possível realizar atualização", error: error.message});
